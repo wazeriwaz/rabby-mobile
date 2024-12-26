@@ -363,6 +363,8 @@ export const useQuoteMethods = () => {
               chain,
               gasPrice,
               fee: true,
+              chainServerId: chainInfo.serverId,
+              nativeTokenAddress: chainInfo.nativeTokenAddress,
             },
             walletOpenapi,
           );
