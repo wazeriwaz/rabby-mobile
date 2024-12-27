@@ -299,14 +299,18 @@ function findInstanceLevel(gasList: GasLevel[]) {
   );
 }
 const fetchGasList = async (chainItem: Chain | null, params: Tx) => {
-  const list: GasLevel[] = chainItem?.isTestnet
-    ? await customTestnetService.getGasMarket({ chainId: chainItem.id })
-    : await apiProvider.gasMarketV2({
-        chain: chainItem!,
-        tx: params,
-      });
-
-  return list;
+  try {
+    const list: GasLevel[] = chainItem?.isTestnet
+      ? await customTestnetService.getGasMarket({ chainId: chainItem.id })
+      : await apiProvider.gasMarketV2({
+          chain: chainItem!,
+          tx: params,
+        });
+    return list;
+  } catch (error) {
+    console.error(error);
+    return [];
+  }
 };
 function calcGasCost({
   chainEnum,
