@@ -1536,6 +1536,11 @@
     "buy": {
       "from": "From {{dex}}",
       "purchased": "Purchased"
+    },
+    "settingModal": {
+      "themeMode": {
+        "title": "Theme mode"
+      }
     }
   },
   "component": {
@@ -1715,7 +1720,12 @@
       "hours": "{{t}} hours",
       "mins": "{{t}} mins"
     },
-    "Unknown": "Unknown"
+    "Unknown": "Unknown",
+    "themeMode": {
+      "option_System": "System",
+      "option_Light": "Light",
+      "option_Dark": "Dark"
+    }
   },
   "background": {
     "error": {
