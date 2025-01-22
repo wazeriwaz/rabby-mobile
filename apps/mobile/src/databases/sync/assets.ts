@@ -18,12 +18,16 @@ import {
 } from '@/constant/assets';
 import { SwapItemEntity } from '../entities/swapitem';
 import { BalanceEntity } from '../entities/balance';
-import { batchSaveWithPQueueAndTransaction } from './task';
+import { batchSaveWithPQueueAndTransaction } from './_task';
 
-export async function syncRemoteTokens(address: string, tokens: TokenItem[]) {
-  if (tokens.length === 0) {
-    tokens.push(EMPTY_TOKEN_ITEM);
+export async function syncRemoteTokens(address: string, _tokens: TokenItem[]) {
+  if (_tokens.length === 0) {
+    _tokens.push(EMPTY_TOKEN_ITEM);
   }
+  const tokens = _tokens.sort((a, b) =>
+    b.is_core === a.is_core ? 0 : b.is_core ? 1 : -1,
+  );
+
   const tokenItems = tokens.map(raw => {
     const tokenItem = new TokenItemEntity();
     TokenItemEntity.fillEntity(tokenItem, address, raw);
@@ -35,8 +39,9 @@ export async function syncRemoteTokens(address: string, tokens: TokenItem[]) {
 
   await TokenItemEntity.deleteForAddress(address);
   await batchSaveWithPQueueAndTransaction(TokenItemEntity, tokenItems, {
-    key: `${address}-token`,
-    batchSize: 100,
+    owner_addr: address,
+    taskFor: `token`,
+    batchSize: 300,
     concurrency: 1,
     delayBetweenTasks: 1.5 * 1e3,
   })
@@ -69,8 +74,9 @@ export async function syncRemoteHistory(
     // });
     console.debug('syncRemoteHistory batchSaveWithPQueueAndTransaction');
     await batchSaveWithPQueueAndTransaction(HistoryItemEntity, historyItems, {
-      key: address + '-all-history',
-      batchSize: 100,
+      owner_addr: address,
+      taskFor: 'all-history',
+      batchSize: 500,
       concurrency: 1,
       delayBetweenTasks: 1.5 * 1e3,
     })
@@ -112,7 +118,8 @@ export async function syncRemoteSwapHistory(
     // });
     console.debug('syncRemoteSwapHistory batchSaveWithPQueueAndTransaction');
     await batchSaveWithPQueueAndTransaction(SwapItemEntity, historyItems, {
-      key: address + '-swap-history',
+      owner_addr: address,
+      taskFor: 'swap-history',
       batchSize: 100,
       concurrency: 1,
       delayBetweenTasks: 1.5 * 1e3,
@@ -134,10 +141,13 @@ export async function syncRemoteSwapHistory(
   }
 }
 
-export async function syncRemoteNFTs(address: string, nfts: NFTItem[]) {
-  if (nfts.length === 0) {
-    nfts.push(EMPTY_NFT_ITEM);
+export async function syncRemoteNFTs(address: string, _nfts: NFTItem[]) {
+  if (_nfts.length === 0) {
+    _nfts.push(EMPTY_NFT_ITEM);
   }
+  const nfts = _nfts.sort((a, b) =>
+    b.is_core === a.is_core ? 0 : b.is_core ? 1 : -1,
+  );
   const nftItems = nfts.map(raw => {
     const nftItem = new NFTItemEntity();
     NFTItemEntity.fillEntity(nftItem, address, raw);
@@ -148,8 +158,9 @@ export async function syncRemoteNFTs(address: string, nfts: NFTItem[]) {
   await prepareAppDataSource();
   await NFTItemEntity.deleteForAddress(address);
   await batchSaveWithPQueueAndTransaction(NFTItemEntity, nftItems, {
-    key: address,
-    batchSize: 100,
+    owner_addr: address,
+    taskFor: 'nfts',
+    batchSize: 200,
     concurrency: 1,
     delayBetweenTasks: 1.5 * 1e3,
   })
@@ -178,8 +189,9 @@ export async function syncRemotePortocols(
   await prepareAppDataSource();
   await PortocolItemEntity.deleteForAddress(address);
   await batchSaveWithPQueueAndTransaction(PortocolItemEntity, items, {
-    key: `${address}-portocols`,
-    batchSize: 100,
+    owner_addr: address,
+    taskFor: `portocols`,
+    batchSize: 200,
     concurrency: 1,
     delayBetweenTasks: 1.5 * 1e3,
   })
@@ -231,7 +243,8 @@ export async function syncBalance(
   await prepareAppDataSource();
   await BalanceEntity.deleteForAddress(address);
   await batchSaveWithPQueueAndTransaction(BalanceEntity, [balanceItem], {
-    key: `${address}-balance`,
+    owner_addr: address,
+    taskFor: `balance`,
     batchSize: 100,
     concurrency: 1,
   })

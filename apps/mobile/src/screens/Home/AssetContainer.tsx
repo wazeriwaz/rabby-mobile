@@ -50,8 +50,11 @@ import { DisplayedProject } from './utils/project';
 import { flatListRefAtom } from './hooks/store';
 import { useSetAtom } from 'jotai';
 import { useFocusEffect } from '@react-navigation/native';
-import { useMemoizedFn } from 'ahooks';
+import useMemoizedFn from 'ahooks/lib/useMemoizedFn';
 import { useTriggerTagAssets } from './hooks/refresh';
+import { useAppOrmSyncEvents } from '@/databases/sync/_event';
+import { isSameAddress } from '@rabby-wallet/base-utils/dist/isomorphic/address';
+import throttle from 'lodash/throttle';
 
 const icons = {
   unfoldDark: require('@/assets/icons/ios_ic_rabby_icons/ic_rabby_menu_unfold_dark.png'),
@@ -82,6 +85,9 @@ export const AssetContainer: React.FC<Props> = ({ onRefresh }) => {
     loading,
     refreshing,
     hasAssets,
+    updateTokens,
+    updatePortfolio,
+    reloadNftList,
   } = useQueryProjects(currentAccount?.address);
   const sortTokens = useSortToken(tokens);
   const { singleDeFiRefresh, singleNFTRefresh, singleTokenRefresh } =
@@ -90,6 +96,52 @@ export const AssetContainer: React.FC<Props> = ({ onRefresh }) => {
   const [foldNft, setFoldNft] = useState(true);
   const [foldDefi, setFoldDefi] = useState(true);
   const [currentSection, setCurrentSection] = useState<AsssetKey>('token');
+  const throttleUpdateTokens = useCallback(
+    () => throttle(updateTokens, 4000),
+    [updateTokens],
+  );
+  const throttleUpdatePortfolio = useCallback(
+    () => throttle(updatePortfolio, 4000),
+    [updatePortfolio],
+  );
+  const throttleReloadNftList = useCallback(
+    () => throttle(reloadNftList, 4000),
+    [reloadNftList],
+  );
+
+  useAppOrmSyncEvents({
+    taskFor: ['token', 'nfts', 'portocols'],
+    onRemoteDataUpserted: useCallback(
+      ctx => {
+        if (
+          !currentAccount?.address ||
+          !isSameAddress(ctx.owner_addr, currentAccount?.address) ||
+          !ctx.success
+        ) {
+          return;
+        }
+        switch (ctx.taskFor) {
+          case 'token':
+            throttleUpdateTokens();
+            break;
+          case 'nfts':
+            throttleReloadNftList();
+            break;
+          case 'portocols':
+            throttleUpdatePortfolio();
+            break;
+          default:
+            break;
+        }
+      },
+      [
+        currentAccount?.address,
+        throttleReloadNftList,
+        throttleUpdatePortfolio,
+        throttleUpdateTokens,
+      ],
+    ),
+  });
 
   const {
     sheetModalRef: tokenDetailModalRef,
@@ -223,7 +275,7 @@ export const AssetContainer: React.FC<Props> = ({ onRefresh }) => {
   const handleSwitchTab = (key: AsssetKey) => {
     if (loading || refreshing) {
       toast.info(
-        `Ops! The asset wasn't shown yet, please scroll down manually`,
+        "Ops! The asset wasn't shown yet, please scroll down manually",
       );
       return;
     }

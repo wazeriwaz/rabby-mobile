@@ -291,6 +291,10 @@ export const TransactionItem = ({
       return HistoryItemCateType.Revoke;
     }
 
+    if (data.maxGasTx?.action?.actionData.cancelTx) {
+      return HistoryItemCateType.Cancel;
+    }
+
     // if (data.txs?.[0]?.$ctx.ga.category === 'Bridge') {
     //   return HistoryItemCateType.Bridge;
     // }
@@ -355,8 +359,8 @@ export const TransactionItem = ({
 
       case HistoryItemCateType.Revoke:
         return strings('page.transactions.itemTitle.Revoke');
-      // case HistoryItemCateType.Cancel:
-      //   return strings('page.transactions.itemTitle.Cancel');
+      case HistoryItemCateType.Cancel:
+        return strings('page.transactions.itemTitle.Cancel');
       case HistoryItemCateType.UnKnown:
         return strings('page.transactions.itemTitle.Default');
       default:
