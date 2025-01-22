@@ -270,6 +270,10 @@ export const TransactionItem = ({
       return HistoryItemCateType.Send;
     }
 
+    if (data.maxGasTx.action?.actionData.wrapToken) {
+      return HistoryItemCateType.Swap;
+    }
+
     if (data.maxGasTx.action?.actionData.swap) {
       return HistoryItemCateType.Swap;
     }
@@ -312,7 +316,9 @@ export const TransactionItem = ({
           isNft: false,
         };
       case HistoryItemCateType.Swap:
-        const actionData = data.txs?.[0]?.action?.actionData.swap;
+        const actionData =
+          data.txs?.[0]?.action?.actionData.swap ||
+          data.txs?.[0]?.action?.actionData.wrapToken;
         const send = actionData?.payToken!;
         const receive = actionData?.receiveToken!;
 
@@ -372,7 +378,7 @@ export const TransactionItem = ({
     const FromText = strings('page.swap.from') + ' ';
     const ToText = strings('page.swap.to') + ' ';
 
-    const requiredData = data.txs?.[0]?.action?.requiredData as SwapRequireData;
+    const requiredData = data.maxGasTx.action?.requiredData as SwapRequireData;
     const projectName = requiredData.protocol?.name || '';
 
     switch (formatType) {

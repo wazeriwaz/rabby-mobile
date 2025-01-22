@@ -53,7 +53,6 @@ import { ScreenHeaderAccountSwitcher } from '@/components/AccountSwitcher/OnScre
 import {
   useHistoryBasicInfo,
   useSyncHistoryDB,
-  useSyncHistoryOnBoot,
 } from '@/databases/hooks/history';
 import { HistoryFilterMenu } from './components/HistoryFilterMenu';
 import { AppSwitch2024 } from '@/components/customized/Switch2024';
@@ -166,12 +165,6 @@ function History({
 
   const batchFetchDataV2 = async () => {
     // fetch data from local database
-    if (isFirstFetchLoading) {
-      const res = [] as HistoryDisplayItem[];
-      console.log('setRefreshSyncLoading');
-      return res;
-    }
-
     const address = isSceneUsingAllAccounts
       ? undefined
       : finalSceneCurrentAccount?.address.toLowerCase();
@@ -417,18 +410,18 @@ function History({
     },
   });
 
-  // useAppOrmSyncEvents({
-  //   taskFor: ['all-history'],
-  //   onRemoteDataUpserted: ctx => {
-  //     switch (ctx.taskFor) {
-  //       case 'all-history':
-  //         batchFetchDataV2();
-  //         break;
-  //       default:
-  //         break;
-  //     }
-  //   },
-  // });
+  useAppOrmSyncEvents({
+    taskFor: ['all-history'],
+    onRemoteDataUpserted: ctx => {
+      switch (ctx.taskFor) {
+        case 'all-history':
+          batchFetchDataV2();
+          break;
+        default:
+          break;
+      }
+    },
+  });
 
   const data = useMemo(() => {
     return isInTokenDetail ? _data : { list: dbData };

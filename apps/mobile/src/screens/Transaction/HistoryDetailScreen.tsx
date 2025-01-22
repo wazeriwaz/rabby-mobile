@@ -32,7 +32,7 @@ import {
 } from '@/hooks/account';
 import { HistoryDisplayItem } from './MultiAddressHistory';
 import NormalScreenContainer2024 from '@/components2024/ScreenContainer/NormalScreenContainer';
-import { RcIconRightCC } from '@/assets/icons/common';
+import { RcIconExternalLinkCC, RcIconRightCC } from '@/assets/icons/common';
 import { toast } from '@/components2024/Toast';
 import { createGetStyles2024 } from '@/utils/styles';
 import {
@@ -227,7 +227,7 @@ function HistoryDetailScreen(): JSX.Element {
   };
   console.debug(
     'HistoryDetailScreen',
-    data.projectDict[data.project_id!],
+    data.projectDict.length,
     data.tx,
     data.other_addr,
     isForMultipleAdderss,
@@ -235,7 +235,7 @@ function HistoryDetailScreen(): JSX.Element {
 
   const [currentApprove, setCurrentApprove] = useState(0);
   const [noRemainValue, setNoRemainValue] = useState(false);
-  const status = useMemo(() => data.tx?.status || 1, [data]);
+  const status = useMemo(() => data.tx?.status || 0, [data]);
   const { switchAccount } = useCurrentAccount();
 
   const { styles, colors2024 } = useTheme2024({ getStyle });
@@ -314,6 +314,8 @@ function HistoryDetailScreen(): JSX.Element {
   const toAddr =
     formatType === HistoryItemCateType.Recieve
       ? data.address
+      : formatType === HistoryItemCateType.Send
+      ? data.sends[0].to_addr
       : data.tx?.to_addr;
   const usdGasFee = data.tx?.usd_gas_fee;
 
@@ -411,6 +413,7 @@ function HistoryDetailScreen(): JSX.Element {
       }}>
       <HistoryTokenList
         data={data}
+        isForMultipleAdderss={isForMultipleAdderss}
         chain={data.chain}
         receives={data.receives}
         sends={data.sends}
@@ -523,10 +526,10 @@ function HistoryDetailScreen(): JSX.Element {
               disabled={!touchable}
               onPress={onOpenTxId}
               style={{ flexDirection: 'row', alignItems: 'center', gap: 2 }}>
-              <Text style={[styles.itemContentText]}>{`${strings(
-                'page.transactions.detail.ViewOn',
-              )} ${chainItem?.name || 'Unknown'}`}</Text>
-              <RcIconRightCC
+              <Text style={[styles.itemContentText]}>
+                {ellipsisAddress(data.id)}
+              </Text>
+              <RcIconExternalLinkCC
                 width={14}
                 height={14}
                 color={colors2024['neutral-foot']}
@@ -543,7 +546,7 @@ function HistoryDetailScreen(): JSX.Element {
         sends={data.sends}
         type={formatType}
         chain={data.chain}
-        status={status}
+        status={status || 0}
         data={data}
         tokenDict={data.tokenDict}
       />
