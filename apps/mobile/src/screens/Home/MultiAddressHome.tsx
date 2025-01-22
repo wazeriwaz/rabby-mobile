@@ -70,6 +70,7 @@ import { ellipsisAddress } from '@/utils/address';
 import { useSyncAssetsDB } from '@/databases/hooks/assets';
 import { useSortAddressList } from '../Address/useSortAddressList';
 import { useSyncHistoryDB } from '@/databases/hooks/history';
+import { useUpgradeInfo } from '@/hooks/version';
 
 export function MultiAddressHomeHeader(prop): JSX.Element {
   const { loading } = prop;
@@ -95,6 +96,7 @@ export function MultiAddressHomeHeader(prop): JSX.Element {
     );
     return '$' + splitNumberByStep((num || 0).toFixed(2));
   }, [balanceAccounts]);
+  const { remoteVersion } = useUpgradeInfo();
 
   const spin = spinValue.interpolate({
     inputRange: [0, 1],
@@ -144,6 +146,7 @@ export function MultiAddressHomeHeader(prop): JSX.Element {
             });
           }}>
           <RcIconSetting />
+          {remoteVersion.couldUpgrade && <View style={styles.redDot} />}
         </TouchableWithoutFeedback>
       </View>
       <View style={styles.balanceBox}>
@@ -709,6 +712,15 @@ const getStyle = createGetStyles2024(({ colors2024, isLight }) => ({
     width: '100%',
     height: '100%',
   },
+  redDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: colors2024['red-default'],
+    position: 'absolute',
+    top: 15,
+    right: 13,
+  },
   rootScreenContainer: {
     // ...makeDebugBorder(),
     // paddingHorizontal: 20,
@@ -758,7 +770,7 @@ const getStyle = createGetStyles2024(({ colors2024, isLight }) => ({
     justifyContent: 'center',
     paddingLeft: 12,
     paddingRight: ITEM_LAYOUT_PADDING_HORIZONTAL,
-    // ...makeDebugBorder(),
+    position: 'relative',
   },
   usdText: {
     fontSize: 36,
