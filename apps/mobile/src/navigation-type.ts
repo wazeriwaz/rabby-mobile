@@ -210,6 +210,8 @@ export type TransactionNavigatorParamList = {
   [RootNames.Bridge]?: {};
   [RootNames.MultiBridge]?: {};
   [RootNames.GasAccount]?: {};
+  [RootNames.Buy]?: {};
+  [RootNames.MultiBuy]?: {};
 };
 
 export type SettingNavigatorParamList = {
