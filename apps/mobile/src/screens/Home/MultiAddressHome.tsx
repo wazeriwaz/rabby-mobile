@@ -56,6 +56,7 @@ import { useApprovalAlertCounts } from './hooks/approvals';
 import { BadgeText } from './components/HomeTopArea';
 import {
   KeyringAccountWithAlias,
+  useAccounts,
   useCurrentAccount,
   useMyAccounts,
 } from '@/hooks/account';
@@ -71,6 +72,8 @@ import { useSyncAssetsDB } from '@/databases/hooks/assets';
 import { useSortAddressList } from '../Address/useSortAddressList';
 import { useSyncHistoryDB } from '@/databases/hooks/history';
 import { useUpgradeInfo } from '@/hooks/version';
+import { KEYRING_CLASS } from '@rabby-wallet/keyring-utils';
+import { unionBy } from 'lodash';
 
 export function MultiAddressHomeHeader(prop): JSX.Element {
   const { loading } = prop;
@@ -315,12 +318,24 @@ function MultiAddressHome(): JSX.Element {
     accountsNoUnique: true, // balanceAccounts has filter same address accounts
   });
 
-  const { accounts } = useMyAccounts({
+  useMyAccounts;
+  const { accounts } = useAccounts({
     disableAutoFetch: true,
   });
+
   const sortedAccounts = useSortAddressList(accounts);
-  const { syncTop10Assets } = useSyncAssetsDB(sortedAccounts);
-  const { syncTop10History } = useSyncHistoryDB(sortedAccounts);
+  const unionAccounts = useMemo(() => {
+    return unionBy(sortedAccounts, account => account.address.toLowerCase());
+  }, [sortedAccounts]);
+  const sortedMyAccounts = useMemo(
+    () =>
+      unionAccounts.filter(
+        a => a.type !== KEYRING_CLASS.WATCH && a.type !== KEYRING_CLASS.GNOSIS,
+      ),
+    [unionAccounts],
+  );
+  const { syncTop10Assets } = useSyncAssetsDB(sortedMyAccounts);
+  const { syncTop10History } = useSyncHistoryDB(unionAccounts);
 
   const { pinAccountsFirstFour, isShowPin, unPinAddress } =
     useHomePinAddress(balanceAccounts);

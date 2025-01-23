@@ -22,7 +22,7 @@ import {
   useRequest,
 } from 'ahooks';
 import PQueue from 'p-queue';
-import { last, unionBy, orderBy, set, isString } from 'lodash';
+import { last, unionBy, orderBy, set, isString, throttle } from 'lodash';
 import { Text, TouchableWithoutFeedback, View } from 'react-native';
 import { useFocusEffect, useRoute } from '@react-navigation/native';
 import { TouchableOpacity } from 'react-native-gesture-handler';
@@ -99,7 +99,9 @@ function History({
   isTestnet?: boolean;
   isForMultipleAdderss: boolean;
 }): JSX.Element {
-  const { accounts } = useMyAccounts();
+  const { accounts } = useMyAccounts({
+    disableAutoFetch: true,
+  });
   const sortedAccounts = useSortAddressList(accounts);
   const route = useRoute();
   const { tokenItem, isInTokenDetail, isMultiAddress } = (route.params ||
@@ -118,7 +120,6 @@ function History({
 
   const [currentPage, setCurrentPage] = useState(0);
   const [isShowAll, setIsShowAll] = useState(false);
-  const [refreshSyncLoading, setRefreshSyncLoading] = useState(false);
   const [isShowMenu, setIsShowMenu] = useState(false);
   const { styles } = useTheme2024({ getStyle });
   const [dbData, setDbData] = useState<HistoryDisplayItem[]>([]);
@@ -135,8 +136,7 @@ function History({
     transactionHistoryService.getSucceedList(),
   );
 
-  const { syncTop10History, isSyncing, isFirstFetchLoading } =
-    useSyncHistoryDB(unionAccounts);
+  const { syncTop10History } = useSyncHistoryDB(unionAccounts);
   const { projectDict, tokenDict } = useHistoryTokenDict();
   const getSwapHistory = async (add?: string) => {
     if (cacheSwapHistory.current.length) {
@@ -147,15 +147,6 @@ function History({
     cacheSwapHistory.current = swapList;
     return swapList;
   };
-
-  useEffect(() => {
-    if (!isSyncing && !isInTokenDetail && refreshSyncLoading) {
-      console.log('refreshSyncLoading reloadAsync exec');
-      reloadAsync(); // again fetch local db data
-    }
-
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isSyncing]);
 
   useMount(() => {
     const list = transactionHistoryService.getSucceedList();
@@ -189,7 +180,6 @@ function History({
           isShowSuccess: historySuccessList.includes(item.txHash),
         } as HistoryDisplayItem),
     );
-    setRefreshSyncLoading(false);
     setDbData(list);
     return list;
   };
@@ -371,9 +361,6 @@ function History({
   useInterval(() => runFetchLocalTx(), groups?.length ? 5000 : 60 * 1000);
 
   const refresh = useMemoizedFn(() => {
-    if (!isInTokenDetail) {
-      setRefreshSyncLoading(true);
-    }
     syncTop10History(true);
     lastMap.current = {};
     hasMoreMap.current = {};
@@ -410,12 +397,14 @@ function History({
     },
   });
 
+  const thorttleBatchFetchData = throttle(batchFetchData, 2000);
+
   useAppOrmSyncEvents({
     taskFor: ['all-history'],
     onRemoteDataUpserted: ctx => {
       switch (ctx.taskFor) {
         case 'all-history':
-          batchFetchDataV2();
+          thorttleBatchFetchData();
           break;
         default:
           break;
@@ -509,8 +498,7 @@ function History({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [setNavigationOptions, getHeaderTitle, getHeaderRight]);
 
-  const isFirstLoading =
-    (loading || isFirstFetchLoading) && !allTxHistory.length;
+  const isFirstLoading = loading && !allTxHistory.length;
 
   if (!loading && !groups?.length && !allTxHistory.length) {
     return <Empty />;
