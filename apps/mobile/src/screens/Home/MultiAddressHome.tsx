@@ -318,7 +318,6 @@ function MultiAddressHome(): JSX.Element {
     accountsNoUnique: true, // balanceAccounts has filter same address accounts
   });
 
-  useMyAccounts;
   const { accounts } = useAccounts({
     disableAutoFetch: true,
   });
