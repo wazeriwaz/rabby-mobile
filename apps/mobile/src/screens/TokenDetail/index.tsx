@@ -541,7 +541,7 @@ export const TokenDetailScreen = () => {
             <Button
               title={t('page.swap.title')}
               containerStyle={StyleSheet.flatten([styles.btnContainer])}
-              onPress={() => handleSwap('Buy')}
+              onPress={() => handleSwap('Sell')}
               disabled={!tokenSupportSwap}
             />
           </Tip>
