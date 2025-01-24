@@ -49,7 +49,6 @@ import { ellipsisAddress } from '@/utils/address';
 import BigNumber from 'bignumber.js';
 import { TokenChainAndContract } from './components/TokenChainAndContract';
 import { GetRootScreenNavigationProps } from '@/navigation-type';
-import { TokenChainAndContract } from './components/TokenChainAndContract';
 
 const isAndroid = Platform.OS === 'android';
 
