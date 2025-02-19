@@ -37,7 +37,7 @@
     "@rabby-wallet/keyring-utils": "^0.1.0",
     "ethereumjs-util": "^7.1.5",
     "semver": "^7.6.2",
-    "web3-utils": "1.7.0"
+    "web3-utils": "1.10.1"
   },
   "devDependencies": {
     "@metamask/auto-changelog": "^3.4.3",
