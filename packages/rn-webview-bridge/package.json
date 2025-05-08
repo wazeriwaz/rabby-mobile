@@ -31,7 +31,7 @@
     "cov:report": "open ./coverage/index.html"
   },
   "dependencies": {
-    "@babel/runtime": "^7.20.0",
+    "@babel/runtime": "^7.26.10",
     "@rabby-wallet/object-multiplex": "workspace:^",
     "@rabby-wallet/universal-providers": "workspace:^",
     "ethereumjs-util": "^7.1.5",
