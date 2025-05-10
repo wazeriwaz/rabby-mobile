@@ -80,7 +80,7 @@
     "react-native@0.72.7": "patch:react-native@npm%3A0.72.7#./.yarn/patches/react-native-npm-0.72.7-1edea1acc1.patch"
   },
   "dependencies": {
-    "@babel/runtime": "^7.20.0",
+    "@babel/runtime": "^7.26.10",
     "@debank/common": "^0.3.54",
     "@exodus/patch-broken-hermes-typed-arrays": "^1.0.0-alpha.1",
     "human-standard-token-abi": "^2.0.0"
